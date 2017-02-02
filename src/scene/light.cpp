@@ -56,6 +56,19 @@ glm::dvec3 PointLight::shadowAttenuation(const ray& r, const glm::dvec3& p) cons
 {
 	// YOUR CODE HERE:
 	// You should implement shadow-handling code here.
+
+	// d = (l.position - P).normalize()
+	// (t, N, mtrl) ← scene.intersect(P, d)
+	// Q ← ray(t)
+	// if Q is before the light source then:
+	// atten = 0
+	// else
+	// atten = 1
+	// end if
+	// return atten
+
+
 	return glm::dvec3(1,1,1);
+	
 }
 

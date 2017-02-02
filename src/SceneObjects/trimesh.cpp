@@ -92,6 +92,10 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     // YOUR CODE HERE
     // 
     // FIXME: Add ray-trimesh intersection
+    ///////////////////
+
+
+
 
     return false;
 }
