@@ -94,6 +94,10 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     // FIXME: Add ray-trimesh intersection
     ///////////////////
 
+    //Check if ray r intersects the plane
+
+
+    //Check if it intersects the triangle
     //Get normal of plane (already done in trimeshface constructor???)
     // Vec a = parent->vericies[ids[0]] 
     // Vec b = parent->verticies[ids[1]]
@@ -113,11 +117,9 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 
     //--- CA --- .
     //...
-
-
-
-
     return false;
+
+    //if there is an intersection set isect to stuff
 }
 
 void Trimesh::generateNormals()

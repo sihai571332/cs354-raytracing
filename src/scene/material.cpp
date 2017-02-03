@@ -46,6 +46,25 @@ glm::dvec3 Material::shade(Scene *scene, const ray& r, const isect& i) const
 	// 		.
 	// 		.
 	// }
+
+
+
+	 // (t, N, mtrl) ← scene.intersect (P, d)
+     // Q ! ray (P, d) evaluated at t
+     // I = shade(q, N, mtrl, scene)
+     // R = reflectDirection(N, -d)
+    // I ← I + mtrl.k
+    // r
+    // ∗ traceRay(scene, Q, R)
+    // if ray is entering object then
+    // n_i = index_of_air
+    // n_t = mtrl.index
+    // else n_i = mtrl.index
+    // n_t = index_of_air
+    // if (mtrl.k_t > 0 and notTIR (n_i, n_t, N, -d)) then T = refractDirection (n_i, n_t, N, -d) I ← I + mtrl.kt
+    // ∗ traceRay(scene, Q, T)
+    // end if
+    // return I 
 	return kd(i);
 }
 
