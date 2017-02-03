@@ -82,11 +82,6 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// Instead of just returning the result of shade(), add some
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
-		
-
-		//Call shade   
-
-
 
 		const Material& m = i.getMaterial();
 		colorC = m.shade(scene, r, i);
@@ -188,13 +183,6 @@ void RayTracer::traceImage(int w, int h, int bs, double thresh)
 	// YOUR CODE HERE
 	// FIXME: Start one or more threads for ray tracing
 
-
-	// for each pixel (i,j) in image S = pixelToWorld(i,j)
-	// P = COP
-	// d = (S - P)/|| S – P||
-	// I(i,j) = traceRay(scene, P, d)
-	// end for 
-	
 
 	w = 512;
 	h = 512;

@@ -93,52 +93,53 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     // 
     // FIXME: Add ray-trimesh intersection
     ///////////////////
+
+     //Check if ray r intersects the plane
     glm::dvec3 N = normal;
     
     glm::dvec3 P = r.getPosition();
     glm::dvec3 d = r.getDirection();
-    glm::dvec3 v0 = parent->vertices[ids[0]];
-    glm::dvec3 v1 = parent->vertices[ids[1]];
-    glm::dvec3 v2 = parent->vertices[ids[2]];
+    glm::dvec3 v0 = parent->vertices[ids[0]]; //a
+    glm::dvec3 v1 = parent->vertices[ids[1]]; //b
+    glm::dvec3 v2 = parent->vertices[ids[2]]; //c
     glm::dvec3 p0 = v1 - v0;
 
     glm::dvec3 origin1(  0.0, 0.0, 0.0  );
-    // float t = (dot(N,origin1));
     float demon = dot(N, d);
+    float t = 0.0;
+
     if (demon > 0){
         glm::dvec3 p0l0 = p0 - P;
-        float t = dot(p0l0, N);
-        return (t>=0);
+        t = dot(p0l0, N)/ demon;
+        if(t<0) return false;
+        //printf("detected intersection\n");
     }
-
-
-    
-
-    //Check if ray r intersects the plane
-
-
+    else return false;
     //Check if it intersects the triangle
-    //Get normal of plane (already done in trimeshface constructor???)
-    // N = normal
     //Test each edge
 
-
-
-
     // --- Edge AB ---
-    //AB = b - a 
-    //AP = P - a
-    //C =  cross(AB, AP)
-    // if (dot(N, C) < 0) return false;
+    glm::dvec3 AB = v1 - v0; 
+    glm::dvec3 AP = P - v0;
+    glm::dvec3 C = cross(AB, AP);
+    if (dot(N, C) < 0) return false;
 
     //--- BC ---
-    // ....
+    glm::dvec3 BC = v2 - v1; 
+    glm::dvec3 BP = P - v1;
+    C = cross(BC, BP);
+    if (dot(N, C) < 0) return false;
 
     //--- CA --- .
-    //...
-    return false;
+    glm::dvec3 CA = v0 - v2; 
+    glm::dvec3 CP = P - v2;
+    C = cross(CA, CP);
+    if (dot(N, C) < 0) return false;
 
-    //if there is an intersection set isect to stuff
+    i.obj = this;
+    i.setMaterial(this->getMaterial());
+    i.t = t;
+    return true;
 }
 
 void Trimesh::generateNormals()
