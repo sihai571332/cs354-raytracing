@@ -83,6 +83,23 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
 
+                // (t, N, mtrl) ← scene.intersect (P, d)
+	        // Q ! ray (P, d) evaluated at t
+	        // I = shade(q, N, mtrl, scene)
+	        // R = reflectDirection(N, -d)
+	        // I ← I + mtrl.k
+	        // r
+	        // ∗ traceRay(scene, Q, R)
+	        // if ray is entering object then
+	        // n_i = index_of_air
+	        // n_t = mtrl.index
+	        // else n_i = mtrl.index
+	        // n_t = index_of_air
+	        // if (mtrl.k_t > 0 and notTIR (n_i, n_t, N, -d)) then T = refractDirection (n_i, n_t, N, -d) I ← I + mtrl.kt
+	        // ∗ traceRay(scene, Q, T)
+	        // end if
+	        // return I 
+
 
 
 
@@ -98,30 +115,6 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		colorC = glm::dvec3(0.0, 0.0, 0.0);
 	}
 	return colorC;
-
-
-
-	// (t, N, mtrl) ← scene.intersect (P, d)
-	// Q ! ray (P, d) evaluated at t
-	// I = shade(q, N, mtrl, scene)
-	// R = reflectDirection(N, -d)
-	// I ← I + mtrl.k
-	// r
-	// ∗ traceRay(scene, Q, R)
-	// if ray is entering object then
-	// n_i = index_of_air
-	// n_t = mtrl.index
-	// else n_i = mtrl.index
-	// n_t = index_of_air
-	// if (mtrl.k_t > 0 and notTIR (n_i, n_t, N, -d)) then T = refractDirection (n_i, n_t, N, -d) I ← I + mtrl.kt
-	// ∗ traceRay(scene, Q, T)
-	// end if
-	// return I 
-
-
-
-
-
 }
 
 RayTracer::RayTracer()
@@ -209,7 +202,16 @@ void RayTracer::traceImage(int w, int h, int bs, double thresh)
 {
 	// YOUR CODE HERE
 	// FIXME: Start one or more threads for ray tracing
-	// for each pixel (i,j) in image S = pixelToWorld(i,j)
+
+        //figure out what bs and thresh are
+
+        // go thru each pixel in image
+        // for i in range 0 to w 
+        //     for j int range p to h
+	//         call tracepixel(i,j, ctr)
+
+        //  | tracepixel does that already i think
+        //  V
 	// P = COP
 	// d = (S - P)/|| S – P||
 	// I(i,j) = traceRay(scene, P, d)
