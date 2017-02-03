@@ -93,18 +93,37 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     // 
     // FIXME: Add ray-trimesh intersection
     ///////////////////
+    glm::dvec3 N = normal;
+    
+    glm::dvec3 P = r.getPosition();
+    glm::dvec3 d = r.getDirection();
+    glm::dvec3 v0 = parent->vertices[ids[0]];
+    glm::dvec3 v1 = parent->vertices[ids[1]];
+    glm::dvec3 v2 = parent->vertices[ids[2]];
+    glm::dvec3 p0 = v1 - v0;
+
+    glm::dvec3 origin1(  0.0, 0.0, 0.0  );
+    // float t = (dot(N,origin1));
+    float demon = dot(N, d);
+    if (demon > 0){
+        glm::dvec3 p0l0 = p0 - P;
+        float t = dot(p0l0, N);
+        return (t>=0);
+    }
+
+
+    
 
     //Check if ray r intersects the plane
 
 
     //Check if it intersects the triangle
     //Get normal of plane (already done in trimeshface constructor???)
-    // Vec a = parent->vericies[ids[0]] 
-    // Vec b = parent->verticies[ids[1]]
-    // Vec c = parent->verticies[ids[2]]
     // N = normal
-
     //Test each edge
+
+
+
 
     // --- Edge AB ---
     //AB = b - a 
