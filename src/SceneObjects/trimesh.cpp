@@ -95,54 +95,59 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     ///////////////////
 
      //Check if ray r intersects the plane
-    glm::dvec3 N =  normal;
-    glm::dvec3 negN (-1, -1,-1);
-    N *= negN;
+    glm::dvec3 N;
     glm::dvec3 P = r.getPosition();
     glm::dvec3 d = r.getDirection();
     glm::dvec3 v0 = parent->vertices[ids[0]]; //a
     glm::dvec3 v1 = parent->vertices[ids[1]]; //b
     glm::dvec3 v2 = parent->vertices[ids[2]]; //c
-    glm::dvec3 p0 = v1 - v0;
+    glm::dvec3 p0 = v1;
 
-    glm::dvec3 origin1(  0.0, 0.0, 0.0  );
-    float demon = dot(N, d);
-    float t = 0.0;
+    N = cross((v1 - v0),(v2 - v0)); 
 
-    if (demon > 0){
+    glm::dvec3 origin1(0.0, 0.0, 0.0);
+    float denom = dot(d, N);
+    double t = 0.0;
+
+    if (denom < 1e-6){
         glm::dvec3 p0l0 = p0 - P;
-        t = dot(p0l0, N)/ demon;
+        t = dot(p0l0, N)/ denom;
         if(t<0) return false;
-        printf("detected intersection\n");
+        //printf("detected intersection\n");
     }
     else return false;
+
+    glm::dvec3 ii = r.at(t); // r.getPosition() + r.getDirection() * t ;
+    
     //Check if it intersects the triangle
     //Test each edge
 
     glm::dvec3 Bary;
-
     // --- Edge AB ---
     glm::dvec3 AB = v1 - v0; 
-    glm::dvec3 AP = P - v0;
+    glm::dvec3 AP = ii - v0;
     glm::dvec3 C = cross(AB, AP);
     if (dot(N, C) < 0) return false;
-
+    //printf("detected intersection 1\n");
 
     //--- BC ---
     glm::dvec3 BC = v2 - v1; 
-    glm::dvec3 BP = P - v1;
+    glm::dvec3 BP = ii - v1;
     C = cross(BC, BP);
     if (dot(N, C) < 0) return false;
+    //printf("detected intersection 2\n");
 
     //--- CA --- .
     glm::dvec3 CA = v0 - v2; 
-    glm::dvec3 CP = P - v2;
+    glm::dvec3 CP = ii - v2;
     C = cross(CA, CP);
     if (dot(N, C) < 0) return false;
+    //printf("detected intersection 3\n");
 
     i.obj = this;
     i.setMaterial(this->getMaterial());
     i.t = t;
+    i.N = N;
 
     glm::dvec3 d0 = v1-v0, d1 = v2-v0, d2 = p0 - v0;
 
@@ -151,7 +156,7 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     float d11 = dot(d1, d1);
     float d20 = dot(d2, d0);
     float d21 = dot(d2, d1);
-    float denom = d00 * d11 - d01 * d01;
+    denom = d00 * d11 - d01 * d01;
     Bary.y = (d11 * d20 - d01 * d21) / denom;
     Bary.z = (d00 * d21 - d01 * d20) / denom;
     Bary.x = 1.0f - Bary.y - Bary.z;
