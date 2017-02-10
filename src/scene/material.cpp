@@ -36,31 +36,39 @@ glm::dvec3 Material::shade(Scene *scene, const ray& r, const isect& i) const
 	// When you're iterating through the lights,
 	// you'll want to use code that looks something
 	// like this:
+    // i->material.ks(i)
 
-
-    glm::dvec3 intersect = r.getPosition() + r.getDirection() * i.t ;
+    glm::dvec3 intersect = r.at(i.t) ;
 
     glm::dvec3 phong = ke(i) + ka(i) * scene->ambient();
 
-    glm::dvec3 diffuse(0.0, 0.0, 0.0);
+    glm::dvec3 atten(0.0, 0.0, 0.0);
+    glm::dvec3 diffuseTerm(0.0, 0.0, 0.0);
+    glm::dvec3 specTerm(0.0, 0.0, 0.0);
+    glm::dvec3 R(0.0, 0.0, 0.0);
+    glm::dvec3 ri(0.0, 0.0, 0.0);
+    glm::dvec3 rinv = -1.0 * r.getDirection();
+
 
 	for ( vector<Light*>::const_iterator litr = scene->beginLights(); 
 	 		litr != scene->endLights(); 
 	 		++litr )
 	 {
 	 		Light* pLight = *litr;
-            double lightdir = dot(i.N , pLight->getDirection(intersect));
-            if(lightdir > 0){
-                phong += kd(i) * lightdir * pLight->getColor();
-            }
-            else{
-
-            }
+	 		atten = pLight->distanceAttenuation(intersect)
+	 		* pLight->shadowAttenuation(r,intersect);
 
 
+            double lightdir = dot(pLight->getDirection(intersect), i.N);
+            ri = -1.0 * pLight->getDirection(intersect);
+            R = ri - (2.0 * i.N * dot(ri, i.N));
+
+            diffuseTerm += kd(i) * pLight->getColor() * max(lightdir, 0.0);
+            specTerm += ks(i) * pLight->getColor() * pow(dot(R , rinv), shininess(i));
+            specTerm = max(specTerm, 0.0);
 	 }
 
-	return phong;
+	return phong + atten * (diffuseTerm + specTerm);
 }
 
 TextureMap::TextureMap( string filename )
