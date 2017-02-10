@@ -17,7 +17,14 @@ glm::dvec3 DirectionalLight::shadowAttenuation(const ray& r, const glm::dvec3& p
 {
 	// YOUR CODE HERE:
 	// You should implement shadow-handling code here.
-	return glm::dvec3(1.0, 1.0, 1.0);
+	return glm::dvec3(1,1,1);
+	isect i;
+	ray shadowRay (p, normalize(orientation), r.pixel, r.ctr, r.atten, ray::SHADOW);
+
+	if(scene->intersect(shadowRay, i)){
+		//return atten = 0
+		return glm::dvec3(0,0,0);
+	}else return glm::dvec3(1,1,1);
 }
 
 glm::dvec3 DirectionalLight::getColor() const
@@ -61,17 +68,6 @@ glm::dvec3 PointLight::shadowAttenuation(const ray& r, const glm::dvec3& p) cons
 {
 	// YOUR CODE HERE:
 	// You should implement shadow-handling code here.
-
-	// d = (l.position - P).normalize()
-	// (t, N, mtrl) ← scene.intersect(P, d)
-	// Q ← ray(t)
-	// if Q is before the light source then:
-	// atten = 0
-	// else
-	// atten = 1
-	// end if
-	// return atten
-
 	isect i;
 
 	//get position of light source.

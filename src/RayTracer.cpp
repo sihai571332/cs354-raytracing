@@ -93,7 +93,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		colorC = m.shade(scene, r, i);	
 
 		dvec3 kt = m.kt(i);
-
+		dvec3 kr = m.kr(i);
 
 		if(depth > 0){
 			//Reflection
@@ -106,16 +106,14 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 
 
 			//Recursively get the reflection 
-			
 			ray refRay (r.at(i.t), reflectDirection, r.pixel, r.ctr, r.atten, ray::REFLECTION);
 			
 			//Store the reflection color.
 			glm::dvec3 reflectColor (0.0, 0.0, 0.0);
 			reflectColor += traceRay(refRay, thresh, depth-1, t);
-			printf("I've reached recursion %d\n", depth);
+		    colorC += kr * reflectColor;
+			//printf("I've reached recursion %d\n", depth);
 
-			
-			
 			//Refraction
 			if(length(kt)!=0.0){
 
@@ -123,27 +121,9 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 				ray refractRay(r.at(i.t), refractD, r.pixel, r.ctr, r.atten, ray::REFRACTION);
 				dvec3 refractColor (0.0, 0.0, 0.0);
 				refractColor += traceRay(refractRay, thresh, depth-1, t);
-				colorC += refractColor;
-
-			 	 
+				colorC += kt * refractColor;
 			}
-
-			colorC += reflectColor;
-
-
 		 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 	} else {
