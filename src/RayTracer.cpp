@@ -94,30 +94,36 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 
 		dvec3 kt = m.kt(i);
 		dvec3 kr = m.kr(i);
+		glm::dvec3 rayDir = r.getDirection();
 
 		if(depth > 0){
 			//Reflection
-			//Get Ray Direction
-		
-			glm::dvec3 rayDir = r.getDirection();
-
 			double c1 = -dot(i.N,rayDir);
 			glm::dvec3 reflectDirection = rayDir +(2.0 * i.N * c1);
-
-
 			//Recursively get the reflection 
-			ray refRay (r.at(i.t), reflectDirection, r.pixel, r.ctr, r.atten, ray::REFLECTION);
-			
-			//Store the reflection color.
+			ray refRay (r.at(i.t), normalize(reflectDirection), r.pixel, r.ctr, r.atten, ray::REFLECTION);
 			glm::dvec3 reflectColor (0.0, 0.0, 0.0);
 			reflectColor += traceRay(refRay, thresh, depth-1, t);
 		    colorC += kr * reflectColor;
-			//printf("I've reached recursion %d\n", depth);
+			//printf("I've reached recursion %d\n", depth); 
 
 			//Refraction
 			if(length(kt)!=0.0){
-
-				dvec3 refractD = refract(rayDir, i.N, (1.0/m.index(i)));
+                double ni = 0.0;
+                double nt = 0.0;
+                glm::dvec3 normal(0.0,0.0,0.0); //normal for refraction 
+                //Check if ray is entering or leaving
+                if(dot(rayDir, i.N) > 0){ //exiting object
+                    normal = -i.N;
+                    ni = m.index(i);
+                    nt = 1.0; 
+                }
+                else{ //entering object
+                	normal = i.N;
+                    ni = 1.0;
+                    nt = m.index(i);
+                }
+				dvec3 refractD = refract(rayDir, normal, ni/nt);
 				ray refractRay(r.at(i.t), refractD, r.pixel, r.ctr, r.atten, ray::REFRACTION);
 				dvec3 refractColor (0.0, 0.0, 0.0);
 				refractColor += traceRay(refractRay, thresh, depth-1, t);
