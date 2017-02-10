@@ -22,6 +22,10 @@ glm::dvec3 DirectionalLight::shadowAttenuation(const ray& r, const glm::dvec3& p
 	ray shadowRay (p, -orientation, r.pixel, r.ctr, r.atten, ray::SHADOW);
 
 	if(scene->intersect(shadowRay, i)){
+		const Material& m = i.getMaterial();
+		glm::dvec3 kt = m.kt(i);
+		if(length(kt)!=0.0) return glm::dvec3(1,1,1);
+
 		return glm::dvec3(0,0,0);
 	}else return glm::dvec3(1,1,1);
 }
@@ -77,6 +81,9 @@ glm::dvec3 PointLight::shadowAttenuation(const ray& r, const glm::dvec3& p) cons
 
 	//Check to see if this ray intersects with light source.
 	if(scene->intersect(shadowRay, i)){
+	    const Material& m = i.getMaterial();
+		glm::dvec3 kt = m.kt(i);
+		if(length(kt)!=0.0) return glm::dvec3(1,1,1);
 		//return atten = 0
 		return glm::dvec3(0,0,0);
 	}else return glm::dvec3(1,1,1);
