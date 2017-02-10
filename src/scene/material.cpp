@@ -58,17 +58,20 @@ glm::dvec3 Material::shade(Scene *scene, const ray& r, const isect& i) const
 	 		atten = pLight->distanceAttenuation(intersect)
 	 		* pLight->shadowAttenuation(r,intersect);
 
-
             double lightdir = dot(pLight->getDirection(intersect), i.N);
             ri = -1.0 * pLight->getDirection(intersect);
             R = ri - (2.0 * i.N * dot(ri, i.N));
 
-            diffuseTerm += kd(i) * pLight->getColor() * max(lightdir, 0.0);
-            specTerm += ks(i) * pLight->getColor() * pow(dot(R , rinv), shininess(i));
-            specTerm = max(specTerm, 0.0);
+            diffuseTerm = kd(i) * pLight->getColor()
+                           * max(lightdir, 0.0);
+            specTerm = max(ks(i) * pLight->getColor() * 
+                        pow(dot(R , rinv), shininess(i)), 0.0);
+
+            phong += atten * (diffuseTerm + specTerm);
+
 	 }
 
-	return phong + atten * (diffuseTerm + specTerm);
+	return phong;
 }
 
 TextureMap::TextureMap( string filename )
