@@ -20,6 +20,7 @@
 #include <fstream>
 
 using namespace std;
+using namespace glm;
 extern TraceUI* traceUI;
 
 // Use this variable to decide if you want to print out
@@ -71,6 +72,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 	isect i;
 	glm::dvec3 colorC;
 
+
 	if(scene->intersect(r, i)) {
 		// YOUR CODE HERE
 
@@ -83,8 +85,67 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
 
+		// https://www.cs.unc.edu/~rademach/xroads-RT/RTarticle.html
+		// The reflection function = 2.0* (RayDirection * Normal)*Normal-RayDirection)
+		// Get max Recursion depth 
+
 		const Material& m = i.getMaterial();
-		colorC = m.shade(scene, r, i);
+		colorC = m.shade(scene, r, i);	
+
+		dvec3 kt = m.kt(i);
+
+
+		if(depth > 0){
+			//Reflection
+			//Get Ray Direction
+		
+			glm::dvec3 rayDir = r.getDirection();
+
+			double c1 = -dot(i.N,rayDir);
+			glm::dvec3 reflectDirection = rayDir +(2.0 * i.N * c1);
+
+
+			//Recursively get the reflection 
+			
+			ray refRay (r.at(i.t), reflectDirection, r.pixel, r.ctr, r.atten, ray::REFLECTION);
+			
+			//Store the reflection color.
+			glm::dvec3 reflectColor (0.0, 0.0, 0.0);
+			reflectColor += traceRay(refRay, thresh, depth-1, t);
+			printf("I've reached recursion %d\n", depth);
+
+			
+			
+			//Refraction
+			if(length(kt)!=0.0){
+
+				dvec3 refractD = refract(rayDir, i.N, (1.0/m.index(i)));
+				ray refractRay(r.at(i.t), refractD, r.pixel, r.ctr, r.atten, ray::REFRACTION);
+				dvec3 refractColor (0.0, 0.0, 0.0);
+				refractColor += traceRay(refractRay, thresh, depth-1, t);
+				colorC += refractColor;
+
+			 	 
+			}
+
+			colorC += reflectColor;
+
+
+		 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	} else {
 		// No intersection.  This ray travels to infinity, so we color
 		// it according to the background color, which in this (simple) case
