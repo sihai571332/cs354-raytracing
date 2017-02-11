@@ -49,7 +49,7 @@ double PointLight::distanceAttenuation(const glm::dvec3& P) const
 	// of the light based on the distance between the source and the 
 	// point P.  For now, we assume no attenuation and just return 1.0
 
-	double l = (position - P).size();
+	double l = normalize(position - P).size();
 
 	double att = min(1.0, 1 / (constantTerm + linearTerm*l + quadraticTerm*(pow(l, 2))));
 
