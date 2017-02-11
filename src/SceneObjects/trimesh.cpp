@@ -101,6 +101,7 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     glm::dvec3 v0 = parent->vertices[ids[0]]; //a
     glm::dvec3 v1 = parent->vertices[ids[1]]; //b
     glm::dvec3 v2 = parent->vertices[ids[2]]; //c
+
     glm::dvec3 p0 = v1;
 
     N = cross((v1 - v0),(v2 - v0)); 
@@ -134,6 +135,7 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     glm::dvec3 BC = v2 - v1; 
     glm::dvec3 BP = ii - v1;
     C = cross(BC, BP);
+    double u = length(C) / length(N);
     if (dot(N, C) < 0) return false;
     //printf("detected intersection 2\n");
 
@@ -141,28 +143,32 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     glm::dvec3 CA = v0 - v2; 
     glm::dvec3 CP = ii - v2;
     C = cross(CA, CP);
+    double v = length(C) / length(N);
     if (dot(N, C) < 0) return false;
     //printf("detected intersection 3\n");
 
     i.obj = this;
     i.setMaterial(this->getMaterial());
     i.t = t;
-    i.N = N;
+    i.N = N; //true normal
 
-    glm::dvec3 d0 = v1-v0, d1 = v2-v0, d2 = p0 - v0;
+    //Interpolate normal 
 
-    float d00 = dot(d0, d0);
-    float d01 = dot(d0, d1);
-    float d11 = dot(d1, d1);
-    float d20 = dot(d2, d0);
-    float d21 = dot(d2, d1);
-    denom = d00 * d11 - d01 * d01;
-    Bary.y = (d11 * d20 - d01 * d21) / denom;
-    Bary.z = (d00 * d21 - d01 * d20) / denom;
-    Bary.x = 1.0f - Bary.y - Bary.z;
+    if (!parent->normals.empty()){
+        glm::dvec3 phong_n(0.0, 0.0, 0.0);
+        glm::dvec3 n0 = parent->normals[ids[0]]; //a
+        glm::dvec3 n1 = parent->normals[ids[1]]; //b
+        glm::dvec3 n2 = parent->normals[ids[2]]; //c
 
+        Bary.x = u;
+        Bary.y = v; 
+        Bary.z = 1.0 - u - v;
+        i.setBary(Bary);
 
-    i.setBary(Bary);
+        phong_n = (Bary.x * n0) + (Bary.y * n1) + (Bary.z * n2);
+        i.N = normalize(phong_n);
+
+    }
 
     return true;
 }

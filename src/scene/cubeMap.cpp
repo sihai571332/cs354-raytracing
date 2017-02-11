@@ -28,21 +28,21 @@ glm::dvec3 CubeMap::getColor(ray r) const {
 	// Returns the tested value from getMappedValue
 
 	if(faceX && x >= 0){
-		test.x = -z;
+		test.x = z;
 		test.y = y;
-		
+
 		return tMap[0]->getMappedValue(test);
 	}else if(faceX && x < 0){
-		test.x = z;
+		test.x = -z;
 		test.y = y;
 		return tMap[1]->getMappedValue(test);
 	}else if(faceY && y >= 0){
 		test.x = x;
-		test.y = -z;
+		test.y = z;
 		return tMap[2]->getMappedValue(test);
 	}else if(faceY && y < 0){
 		test.x = x;
-		test.y = z;
+		test.y = -z;
 		return tMap[3]->getMappedValue(test);
 	}else if(faceZ && z >= 0){
 		test.x = x;

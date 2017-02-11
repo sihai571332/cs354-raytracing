@@ -17,7 +17,17 @@ glm::dvec3 DirectionalLight::shadowAttenuation(const ray& r, const glm::dvec3& p
 {
 	// YOUR CODE HERE:
 	// You should implement shadow-handling code here.
-	return glm::dvec3(1.0, 1.0, 1.0);
+	//return glm::dvec3(1,1,1);
+	isect i;
+	ray shadowRay (p, -orientation, r.pixel, r.ctr, r.atten, ray::SHADOW);
+
+	if(scene->intersect(shadowRay, i)){
+		const Material& m = i.getMaterial();
+		glm::dvec3 kt = m.kt(i);
+		if(length(kt)!=0.0) return glm::dvec3(1,1,1);
+
+		return glm::dvec3(0,0,0);
+	}else return glm::dvec3(1,1,1);
 }
 
 glm::dvec3 DirectionalLight::getColor() const
@@ -39,7 +49,7 @@ double PointLight::distanceAttenuation(const glm::dvec3& P) const
 	// of the light based on the distance between the source and the 
 	// point P.  For now, we assume no attenuation and just return 1.0
 
-	double l = (position - P).size();
+	double l = normalize(position - P).size();
 
 	double att = min(1.0, 1 / (constantTerm + linearTerm*l + quadraticTerm*(pow(l, 2))));
 
@@ -61,17 +71,6 @@ glm::dvec3 PointLight::shadowAttenuation(const ray& r, const glm::dvec3& p) cons
 {
 	// YOUR CODE HERE:
 	// You should implement shadow-handling code here.
-
-	// d = (l.position - P).normalize()
-	// (t, N, mtrl) ← scene.intersect(P, d)
-	// Q ← ray(t)
-	// if Q is before the light source then:
-	// atten = 0
-	// else
-	// atten = 1
-	// end if
-	// return atten
-
 	isect i;
 
 	//get position of light source.
@@ -82,7 +81,13 @@ glm::dvec3 PointLight::shadowAttenuation(const ray& r, const glm::dvec3& p) cons
 
 	//Check to see if this ray intersects with light source.
 	if(scene->intersect(shadowRay, i)){
+		if(length(shadowRay.at(i.t) - p) > length(position - p))
+            return glm::dvec3(1,1,1);
+	    const Material& m = i.getMaterial();
+		glm::dvec3 kt = m.kt(i);
+		if(length(kt)!= 0.0) return glm::dvec3(1,1,1);
 		//return atten = 0
+
 		return glm::dvec3(0,0,0);
 	}else return glm::dvec3(1,1,1);
 	
