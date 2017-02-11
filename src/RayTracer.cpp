@@ -74,6 +74,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 
 
 	if(scene->intersect(r, i)) {
+		const Material& m = i.getMaterial();	
 		// YOUR CODE HERE
 
 		// An intersection occurred!  We've got work to do.  For now,
@@ -89,13 +90,13 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// The reflection function = 2.0* (RayDirection * Normal)*Normal-RayDirection)
 		// Get max Recursion depth 
 
-		const Material& m = i.getMaterial();
 		colorC = m.shade(scene, r, i);	
 
 		dvec3 kt = m.kt(i);
+		dvec3 kr = m.kr(i);
 
 
-		if(depth > 0){
+		if(depth >= 0){
 			//Reflection
 			//Get Ray Direction
 		
@@ -112,7 +113,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 			//Store the reflection color.
 			glm::dvec3 reflectColor (0.0, 0.0, 0.0);
 			reflectColor += traceRay(refRay, thresh, depth-1, t);
-			printf("I've reached recursion %d\n", depth);
+			//printf("I've reached recursion %d\n", depth);
 
 			
 			
@@ -123,27 +124,15 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 				ray refractRay(r.at(i.t), refractD, r.pixel, r.ctr, r.atten, ray::REFRACTION);
 				dvec3 refractColor (0.0, 0.0, 0.0);
 				refractColor += traceRay(refractRay, thresh, depth-1, t);
-				colorC += refractColor;
+				colorC += refractColor*kt;
 
 			 	 
 			}
 
-			colorC += reflectColor;
+			colorC += reflectColor*kr;
 
 
 		 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 	} else {
@@ -153,7 +142,9 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// 
 		// FIXME: Add CubeMap support here.
 
-		colorC = glm::dvec3(0.0, 0.0, 0.0);
+		//cubemap.getColor();
+
+		if(cubemap!=NULL) colorC = cubemap->getColor(r);
 	}
 	return colorC;
 }
