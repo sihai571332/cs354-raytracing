@@ -104,72 +104,52 @@ glm::dvec3 TextureMap::getMappedValue( const glm::dvec2& coord ) const
 
 	double w = (double) getWidth();
 	double h = (double) getHeight();
+	double u = coord.x *w -1.0;
+	double v = coord.y *h -1.0;
 
-	double u =  coord.x *w -1.0;
-	double v =  coord.y *h -1.0;
+	// double sx = 0.0000001;
+	double fu =  floor(u) ;
+	double cu = fu +1.0 ;
+	double fv =  floor(v) ;
+	double cv =  fv + 1.0 ;
 
 
-	// glm::dvec2 upperLeft (floor(u),ceil(v));
-	// glm::dvec2 upperRight (ceil(u),ceil(v));
-	// glm::dvec2 lowerLeft (floor(u),floor(v));
-	// glm::dvec2 lowerRight (ceil(u),floor(v));
-	// glm::dvec3 upperLeftPix, upperRightPix, lowerLeftPix, lowerRightPix;
-	// upperLeftPix = getPixelAt((int)upperLeft.x,(int)upperLeft.y);
-	// upperRightPix = getPixelAt((int)upperRight.x,(int)upperRight.y);
-	// lowerLeftPix = getPixelAt((int)lowerLeft.x,(int)lowerLeft.y);
-	// lowerRightPix = getPixelAt((int)lowerRight.x,(int)lowerRight.y);
 
-	// //Bilinear Interoplation here, for RGB of each corner.
-	// double q11r = (upperLeftPix.x);
-	// double q11g = (upperLeftPix.y);
-	// double q11b = (upperLeftPix.z);
-	// double q12r = (upperRightPix.x);
-	// double q12g = (upperRightPix.y);
-	// double q12b = (upperRightPix.z);
-	// double q21r = (lowerLeftPix.x);
-	// double q21g = (lowerLeftPix.y);
-	// double q21b = (lowerLeftPix.z);
-	// double q22r = (lowerRightPix.x);
-	// double q22g = (lowerRightPix.y);
-	// double q22b = (lowerRightPix.z);
 
-	// glm::dvec3 colorC (0.0, 0.0, 0.0);
+	glm::dvec2 upperLeft (fu,cv);
+	glm::dvec2 upperRight (cu,cv);
+	glm::dvec2 lowerLeft (fu,fv);
+	glm::dvec2 lowerRight (cu,fv);
+	glm::dvec3 upperLeftPix, upperRightPix, lowerLeftPix, lowerRightPix;
+	upperLeftPix = getPixelAt((int)upperLeft.x,(int)upperLeft.y);
+	upperRightPix = getPixelAt((int)upperRight.x,(int)upperRight.y);
+	lowerLeftPix = getPixelAt((int)lowerLeft.x,(int)lowerLeft.y);
+	lowerRightPix = getPixelAt((int)lowerRight.x,(int)lowerRight.y);
 
-	// for(int i = 0; i < 3; i++){
-		
-	// 	if(i==0){
-	// 		//R x
-	// 		double R2 = ((upperRight.x - coord.x)/(upperRight.x - upperLeft.x)) * q12r
-	// 					+ ((coord.x - upperLeft.x)/(upperRight.x - upperLeft.x)) * q22r;
-	// 		double R1 = ((lowerRight.x - coord.x)/(lowerRight.x - lowerLeft.x)) * q11r 
-	// 					+ ((coord.x - lowerLeft.x)/(lowerRight.x - lowerLeft.x)) * q21r;
-	// 		double P = ((upperLeft.y - coord.y)/(upperLeft.y - lowerLeft.y)) * R1 
-	// 					+ ((coord.y - lowerLeft.y)/(upperLeft.y - lowerLeft.y)) * R2;
-	// 		colorC.x = P;
+	//Bilinear Interoplation here, for RGB of each corner.
+	glm::dvec3 q11r = (upperLeftPix);
 
-	// 	}else if(i==1){
-	// 		//G y
-	// 		double R2 = ((upperRight.x - coord.x)/(upperRight.x - upperLeft.x)) * q12g
-	// 					+ ((coord.x - upperLeft.x)/(upperRight.x - upperLeft.x)) * q22g;
-	// 		double R1 = ((lowerRight.x - coord.x)/(lowerRight.x - lowerLeft.x)) * q11g 
-	// 					+ ((coord.x - lowerLeft.x)/(lowerRight.x - lowerLeft.x)) * q21g;
-	// 		double P = ((upperLeft.y - coord.y)/(upperLeft.y - lowerLeft.y)) * R1 
-	// 					+ ((coord.y - lowerLeft.y)/(upperLeft.y - lowerLeft.y)) * R2;
-	// 		colorC.y = P;
-	// 	}else{
-	// 		//B z 
-	// 		double R2 = ((upperRight.x - coord.x)/(upperRight.x - upperLeft.x)) * q12b
-	// 					+ ((coord.x - upperLeft.x)/(upperRight.x - upperLeft.x)) * q22b;
-	// 		double R1 = ((lowerRight.x - coord.x)/(lowerRight.x - lowerLeft.x)) * q11b 
-	// 					+ ((coord.x - lowerLeft.x)/(lowerRight.x - lowerLeft.x)) * q21b;
-	// 		double P = ((upperLeft.y - coord.y)/(upperLeft.y - lowerLeft.y)) * R1 
-	// 					+ ((coord.y - lowerLeft.y)/(upperLeft.y - lowerLeft.y)) * R2;
-	// 		colorC.z = P;
-	// 	}
-	// }
+	glm::dvec3 q12r = (upperRightPix);
 
-	// return colorC;
-	return getPixelAt((int)u,(int)v);
+	glm::dvec3 q21r = (lowerLeftPix);
+
+	glm::dvec3 q22r = (lowerRightPix);
+
+
+	glm::dvec3 colorC (0.0, 0.0, 0.0);
+
+	
+	glm::dvec3 R2 = ((upperRight.x - u)/(upperRight.x - upperLeft.x)) * q12r
+				+ ((u - upperLeft.x)/(upperRight.x - upperLeft.x)) * q22r;
+	glm::dvec3 R1 = ((lowerRight.x - u)/(lowerRight.x - lowerLeft.x)) * q11r 
+				+ ((u - lowerLeft.x)/(lowerRight.x - lowerLeft.x)) * q21r;
+	glm::dvec3 P = ((upperLeft.y - v)/(upperLeft.y - lowerLeft.y)) * R1 
+				+ ((v - lowerLeft.y)/(upperLeft.y - lowerLeft.y)) * R2;
+	colorC = P;
+
+
+	return colorC;
+	// return getPixelAt((int)u,(int)v);
 
 	// return glm::dvec3(1,1,1);
 }

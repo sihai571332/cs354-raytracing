@@ -8,53 +8,80 @@ glm::dvec3 CubeMap::getColor(ray r) const {
 
 	// YOUR CODE HERE
 	// FIXME: Implement Cube Map here
-	bool faceX = false, faceY = false, faceZ = false;
+	int index;
 	double x = r.getDirection().x;
 	double y = r.getDirection().y;
 	double z = r.getDirection().z;
-
-	// Test Which face it is facing.
-	if(abs(x)>=abs(y) && abs(x)>=abs(z)){
-		faceX = true;
-	}else if(abs(y)>=abs(x) && abs(y)>=abs(z)){
-		faceY = true;
-	}else{
-		faceZ = true;
-	}
-
-	glm::dvec2 test (0.0, 0.0); 
-
-
-	// Returns the tested value from getMappedValue
-
-	if(faceX && x >= 0){
-		test.x = z;
-		test.y = y;
-
-		return tMap[0]->getMappedValue(test);
-	}else if(faceX && x < 0){
-		test.x = -z;
-		test.y = y;
-		return tMap[1]->getMappedValue(test);
-	}else if(faceY && y >= 0){
-		test.x = x;
-		test.y = z;
-		return tMap[2]->getMappedValue(test);
-	}else if(faceY && y < 0){
-		test.x = x;
-		test.y = -z;
-		return tMap[3]->getMappedValue(test);
-	}else if(faceZ && z >= 0){
-		test.x = x;
-		test.y = y;
-		return tMap[4]->getMappedValue(test);
-	}else if(faceZ && z < 0){
-		test.x = -x;
-		test.y = y;
-		return tMap[5]->getMappedValue(test);
-	}else{
-		return glm::dvec3 (1, 1, 1);
-	}
-
+	double u,v;
+	float absX = fabs(x);
+  	float absY = fabs(y);
+  	float absZ = fabs(z);
+  
+  	int isXPositive = x > 0 ? 1 : 0;
+  	int isYPositive = y > 0 ? 1 : 0;
+  	int isZPositive = z > 0 ? 1 : 0;
+  
+  	float maxAxis, uc, vc;
+  
+  	// POSITIVE X
+  	if (isXPositive && absX >= absY && absX >= absZ) {
+    		// u (0 to 1) goes from +z to -z
+    		// v (0 to 1) goes from -y to +y
+    		maxAxis = absX;
+    		uc = -z;
+    		vc = y;
+    		index = 0;
+  	}
+  	// NEGATIVE X
+  	if (!isXPositive && absX >= absY && absX >= absZ) {
+    		// u (0 to 1) goes from -z to +z
+    		// v (0 to 1) goes from -y to +y
+    		maxAxis = absX;
+    		uc = z;
+    		vc = y;
+    		index = 1;
+ 	 }
+  	// POSITIVE Y
+  	if (isYPositive && absY >= absX && absY >= absZ) {
+    		// u (0 to 1) goes from -x to +x
+ 	   	// v (0 to 1) goes from +z to -z
+ 	   	maxAxis = absY;
+ 	   	uc = x;
+ 	   	vc = -z;
+ 	   	index = 2;
+ 	 }
+ 	 // NEGATIVE Y
+ 	 if (!isYPositive && absY >= absX && absY >= absZ) {
+ 	  	 // u (0 to 1) goes from -x to +x
+ 	   	// v (0 to 1) goes from -z to +z
+ 	  	 maxAxis = absY;
+ 	  	 uc = x;
+ 	 	 vc = z;
+ 	  	 index = 3;
+ 	 }
+ 	 // POSITIVE Z
+ 	 if (isZPositive && absZ >= absX && absZ >= absY) {
+ 	  	// u (0 to 1) goes from -x to +x
+  	  	// v (0 to 1) goes from -y to +y
+  	  	maxAxis = absZ;
+  	  	uc = x;
+  	  	vc = y;
+  	  	index = 4;
+  	}
+  	// NEGATIVE Z
+  	if (!isZPositive && absZ >= absX && absZ >= absY) {
+    		// u (0 to 1) goes from +x to -x
+    		// v (0 to 1) goes from -y to +y
+    		maxAxis = absZ;
+    		uc = -x;
+    		vc = y;
+    		index = 5;
+	  }
+	
+  	// Convert range from -1 to 1 to 0 to 1
+  	u = 0.5f * (uc / maxAxis + 1.0f);
+  	v = 0.5f * (vc / maxAxis + 1.0f);
+	glm::dvec2 scaled (u,v);
+	return tMap[index]->getMappedValue(scaled);
 
 }
