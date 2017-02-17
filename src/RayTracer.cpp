@@ -54,9 +54,17 @@ glm::dvec3 RayTracer::tracePixel(int i, int j, unsigned int ctr)
 
 	double x = double(i)/double(buffer_width);
 	double y = double(j)/double(buffer_height);
+	double x_offs = 0.5/buffer_width;
+	double y_offs = 0.5/buffer_height;
 
 	unsigned char *pixel = buffer + ( i + j * buffer_width ) * 3;
 	col = trace(x, y, pixel, ctr);
+
+	//Anti-aliasing, comment out if rendering is too slow
+    /*col = trace(x+x_offs, y+y_offs, pixel, ctr) * 0.25 + 
+          trace(x-x_offs, y-y_offs, pixel, ctr) * 0.25 +
+          trace(x+x_offs, y-y_offs, pixel, ctr) * 0.25 + 
+          trace(x-x_offs, y+y_offs, pixel, ctr) * 0.25; */
 
 	pixel[0] = (int)( 255.0 * col[0]);
 	pixel[1] = (int)( 255.0 * col[1]);
@@ -239,8 +247,8 @@ void RayTracer::traceImage(int w, int h, int bs, double thresh)
 	// FIXME: Start one or more threads for ray tracing
 
 
-	w = 512;
-	h = 512;
+	//w = 512;
+	//h = 512;
 
     traceSetup(w,h); 
     // go thru each pixel in image
