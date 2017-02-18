@@ -6,67 +6,35 @@
 // 	SplitNode;
 // 	LeafNode;
 // };
-class kdTree
-{
-public:
+#include <vector>
+#include <glm/vec3.hpp>
+#include "ray.h"
+#include "scene.h"
+#include "bbox.h"
+
+class kdTree;
+class SplitNode;
+class LeafNode;
 
 
-	//This one is a bit weird. It is returning a node type, might need to uncomment and implement the struct.
-	void buildTree(std::vector<Geometry*> objList, BoundingBox* bbox, int depthLimit, int leafSize){
-		/*if (objList.size <= leafSize or ++depth == depthLimit){ 
-			return LeafNode(objList)
-		}
-		bestPlane ← findBestSplitPlane(objList, boundingBox);
-		for (each obj in objList){
-			if (obj.boundingBoxMinOnBestAxis < bestPlane.position)
-				addToLeftList;
-			if (obj.boundingBoxMaxOnBestAxis > bestPlane.position)
-				addToRightList;
-			if (bestPlane.position == obj.bBMaxOnAxis &&
-				bestPosition == obj.bBMinOnAxis && obj.N < 0) 
-				addToLeftList;
-			else if (bestPlane.position == obj.bBMaxOnAxis &&
-					obj.bBMinOnAxis && obj.N >= 0) 
-				addToRightList;
-		}
-		if (rightList.isEmpty || leftList.isEmpty) 
-			return	LeafNode(objList);
-		else return SplitNode(bestPlane.position, bestPlane.axis,
-		buildTree(leftList, bestPlane.leftBBox, depth, leafSize),
-		buildTree(rightList, bestPlane.rightBBox, depth, leafSize));*/
-	}
+class Node{
 
-	int findBestSplitPlane(std::vector<Geometry*> objList, BoundingBox* bbox){
-		/*for each axis
-			for each object:
-			SplitPlane p1.position = obj.bBMinOnAxis
-			SplitPlane p2.position = obj.bBMaxOnAxis
-			candidateList.pushback(p1)
-			candidateList.pushback(p2)
-		for each plane in candidateList:
-			plane.leftCount = countLeftObjects()
-			plane.leftBBoxArea = calculateLeftBBox()
-			plane.rightCount = countRightObjects()
-			plane.rightBBoxArea = calculateRightBBox()
-		for each plane in candidateList:
-			SAM = (plane.leftCount * plane.leftBBoxArea + plane.rightCount
-				* plane.rightBBoxArea)/boundingBox
-			if (SAM < minSam) then
-				minSam = SAM
-				bestPlane = plane
-		return bestPlane;*/
-		return 0;		
-	}
 
 };
 
-class SplitNode : public kdTree
+class SplitNode : public Node
 {
 public: 
-	char axis;
+	int axis;
 	int position;
-	kdTree* left;
-	kdTree* right;
+	Node left;
+	Node right;
+
+    SplitNode( int _axis,
+    	       int _pos,
+    	       Node _l,
+    	       Node _r)
+    	     : axis(_axis), position(_pos), left(_l), right(_r)  {}
 
 	bool findIntersection(ray& r, isect& i, int t_min, int t_max){
 
@@ -94,17 +62,15 @@ public:
 		return false;	
 	}
 
-	//Initiate the Stuff in here, though I forget if C++ yells at you for putting this after the function. might need to have this before findIntersection
-	SplitNode();
 	~SplitNode();
 
 };
-class LeafNode : public kdTree
+class LeafNode : public Node
 {
 public:
 
-	// beginObjects() from the scene.h to populate this objList 
 	std::vector<Geometry*> objList;
+	LeafNode(std::vector<Geometry*> _obj) : objList(_obj) {}
 
 	bool findIntersection(ray& r, isect& i, int t_min, int t_max){
 		/*//For each loop, needs obj type.
@@ -116,7 +82,89 @@ public:
 		}*/
 		return false;	
 	}
-	// Initate the objList in here, same as the splitnode if it yells.
-	LeafNode();
 	~LeafNode();
+};
+
+struct Plane{
+	int axis; //0 = x, 1 = y, 2 = z
+	int position;
+	int leftCount;
+	int rightCount;
+    BoundingBox* leftBBox; 
+    BoundingBox* rightBBox; 
+};
+
+class kdTree
+{
+public:
+    int depth;
+    Node root;
+
+    kdTree() : depth(0) {}
+	//   use beginObjects() and scene->bounds() for initial call
+	Node buildTree(std::vector<Geometry*> objList, 
+		           BoundingBox* bbox, int depthLimit, int leafSize) {
+
+		if (objList.size() <= leafSize || ++depth == depthLimit){ 
+			return LeafNode(objList);	
+		}
+		std::vector<Geometry*> leftList;
+		std::vector<Geometry*> rightList;
+		
+		Plane bestPlane = findBestSplitPlane(objList, bbox);
+
+		for (std::vector<Geometry*>::iterator t = objList.begin(); 
+			 t != objList.end(); ++t){
+
+			 Geometry* obj = *t; 
+			 BoundingBox obj_bbox = obj->getBoundingBox();
+			 double min = obj_bbox.getMin()[bestPlane.axis];
+             double max = obj_bbox.getMax()[bestPlane.axis];
+             double N = length(obj->getNormal()); //not sure what N is supposed to be
+        
+			if (min < bestPlane.position)
+				leftList.push_back(obj);
+			if (max > bestPlane.position)
+				rightList.push_back(obj);
+			if ( bestPlane.position == max &&
+				 bestPlane.position == min && N < 0) 
+				leftList.push_back(obj);
+			else if (bestPlane.position == max &&
+					 bestPlane.position == min && N >= 0) 
+				rightList.push_back(obj); 
+		}
+		
+
+		if (rightList.empty() || leftList.empty()) 
+			return LeafNode(objList);
+		
+		else return SplitNode(bestPlane.axis, bestPlane.position,
+		buildTree(leftList, bestPlane.leftBBox, depth, leafSize),
+		buildTree(rightList, bestPlane.rightBBox, depth, leafSize)); 
+	}
+
+	Plane findBestSplitPlane(std::vector<Geometry*> objList, BoundingBox* bbox){
+		/*for each axis
+			for each object:
+			SplitPlane p1.position = obj.bBMinOnAxis
+			SplitPlane p2.position = obj.bBMaxOnAxis
+			candidateList.pushback(p1)
+			candidateList.pushback(p2)
+		for each plane in candidateList:
+			plane.leftCount = countLeftObjects()
+			plane.leftBBoxArea = calculateLeftBBox()
+			plane.rightCount = countRightObjects()
+			plane.rightBBoxArea = calculateRightBBox()
+		for each plane in candidateList:
+			SAM = (plane.leftCount * plane.leftBBoxArea + plane.rightCount
+				* plane.rightBBoxArea)/boundingBox
+			if (SAM < minSam) then
+				minSam = SAM
+				bestPlane = plane
+		return bestPlane;*/
+		Plane tmp;
+
+		return tmp;		
+	}
+
 };
