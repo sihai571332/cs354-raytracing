@@ -11,12 +11,12 @@ class SplitNode
 {
 public: 
 	//Axis and Position needs types
-	axis
-	position
-	kdTree* left
-	kdTree* right
+	//axis
+	//position
+	//kdTree* left
+	//kdTree* right
 
-	bool findIntersection(r, i, t_min, t_max){
+	/*bool findIntersection(r, i, t_min, t_max){
 
 		//The check for ray is parallel sounds like r.getDirection() cross/dot axis == 1/0 i forget which gives parallel, but yeah.
 		if(ray is nearly parallel){
@@ -39,7 +39,7 @@ public:
 			}
 			return false;
 		}
-	}
+	}*/
 
 	//Initiate the Stuff in here, though I forget if C++ yells at you for putting this after the function. might need to have this before findIntersection
 	SplitNode();
@@ -51,9 +51,9 @@ class LeafNode
 public:
 
 	// beginObjects() from the scene.h to populate this objList 
-	objList;
+	//objList;
 
-	void findIntersection(r, i, t_min, t_max){
+	/*void findIntersection(r, i, t_min, t_max){
 		//For each loop, needs obj type.
 		for(<t> obj: objList){
 			isect c_i
@@ -61,7 +61,7 @@ public:
 				i = c_i;
 			}
 		}
-	}
+	}*/
 	// Initate the objList in here, same as the splitnode if it yells.
 	LeafNode();
 	~LeafNode();
@@ -72,7 +72,7 @@ public:
 
 
 	//This one is a bit weird. It is returning a node type, might need to uncomment and implement the struct.
-	function buildTree(objList, boundingBox, depthLimit, leafSize){
+	/*function buildTree(objList, boundingBox, depthLimit, leafSize){
 		if (objList.size <= leafSize or ++depth == depthLimit){ 
 			return LeafNode(objList)
 		}
@@ -94,9 +94,9 @@ public:
 		else return SplitNode(bestPlane.position, bestPlane.axis,
 		buildTree(leftList, bestPlane.leftBBox, depth, leafSize),
 		buildTree(rightList, bestPlane.rightBBox, depth, leafSize));
-	}
+	}*/
 
-	function findBestSplitPlane(objList, boundingBox){
+	/*function findBestSplitPlane(objList, boundingBox){
 		for each axis:
 			for each object:
 			SplitPlane p1.position = obj.bBMinOnAxis
@@ -115,6 +115,6 @@ public:
 				minSam = SAM
 				bestPlane = plane
 		return bestPlane;
-	}
+	}*/
 
 };
