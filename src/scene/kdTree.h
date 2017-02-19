@@ -39,7 +39,7 @@ public:
 
 	bool findIntersection(ray& r, isect& i, int t_min, int t_max){
 
-		/*//The check for ray is parallel sounds like r.getDirection() cross/dot axis == 1/0 i forget which gives parallel, but yeah.
+		/*//The check for ray is parallel sounds like r.getDirection() cross axis == 0 
 		if(ray is nearly parallel){
 
 			//Skip this intersection??
@@ -74,13 +74,15 @@ public:
 	LeafNode(std::vector<Geometry*> _obj) : objList(_obj) {}
 
 	bool findIntersection(ray& r, isect& i, int t_min, int t_max){
-		/*//For each loop, needs obj type.
-		for(<t> obj: objList){
-			isect c_i
-			if(obj.intersect(r, c_i) && c_i.t >= t_min && c_i.t <= t_max ){
+		//For each loop, needs obj type.
+		for(std::vector<Geometry*>::iterator t = objList.begin(); 
+			     t != objList.end(); ++t){
+			Geometry* obj = *t;
+			isect c_i;
+			if(obj->intersect(r, c_i) && c_i.t >= t_min && c_i.t <= t_max ){
 				i = c_i;
 			}
-		}*/
+		}
 		return false;	
 	}
 	~LeafNode();
@@ -206,11 +208,18 @@ public:
 		}		
 		return bestPlane;	
 	}
+	//Brain is busted... I'll just psudo code this in comments.
 	int countLeft(std::vector<Geometry*> objList, Plane& plane){
+		/*
+		int count = 0;
+		for(objList iterate, have same axis as plane and have bounding box limits under the plane's, count++)
+		then same for count right but have the counding limits over the planes i guess.
+		*/
         return 0;
     }
     int countRight(std::vector<Geometry*> objList, Plane& plane){
         return 0;
     }
+
 
 };
