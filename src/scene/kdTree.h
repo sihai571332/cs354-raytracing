@@ -6,13 +6,14 @@
 // 	SplitNode;
 // 	LeafNode;
 // };
-#include <vector>
+
+/*#include <vector>
 #include <glm/vec3.hpp>
 #include "ray.h"
 #include "scene.h"
 #include "bbox.h"
-
-class kdTree;
+*/
+//class KdTree;
 class SplitNode;
 class LeafNode;
 
@@ -26,7 +27,7 @@ class SplitNode : public Node
 {
 public: 
 	int axis;
-	int position;
+	double position;
 	Node left;
 	Node right;
 
@@ -87,23 +88,27 @@ public:
 
 struct Plane{
 	int axis; //0 = x, 1 = y, 2 = z
-	int position;
-	int leftCount;
+	double position;
+	int leftCount; 
 	int rightCount;
-    BoundingBox* leftBBox; 
-    BoundingBox* rightBBox; 
+	double leftBBoxArea;
+	double rightBBoxArea;
+    BoundingBox leftBBox; 
+    BoundingBox rightBBox; 
 };
 
-class kdTree
+//template<typename T>
+class kdTree//<T*>
 {
 public:
     int depth;
     Node root;
 
     kdTree() : depth(0) {}
+    ~kdTree();
 	//   use beginObjects() and scene->bounds() for initial call
 	Node buildTree(std::vector<Geometry*> objList, 
-		           BoundingBox* bbox, int depthLimit, int leafSize) {
+		           BoundingBox bbox, int depthLimit, int leafSize) {
 
 		if (objList.size() <= leafSize || ++depth == depthLimit){ 
 			return LeafNode(objList);	
@@ -143,28 +148,69 @@ public:
 		buildTree(rightList, bestPlane.rightBBox, depth, leafSize)); 
 	}
 
-	Plane findBestSplitPlane(std::vector<Geometry*> objList, BoundingBox* bbox){
-		/*for each axis
-			for each object:
-			SplitPlane p1.position = obj.bBMinOnAxis
-			SplitPlane p2.position = obj.bBMaxOnAxis
-			candidateList.pushback(p1)
-			candidateList.pushback(p2)
-		for each plane in candidateList:
-			plane.leftCount = countLeftObjects()
-			plane.leftBBoxArea = calculateLeftBBox()
-			plane.rightCount = countRightObjects()
-			plane.rightBBoxArea = calculateRightBBox()
-		for each plane in candidateList:
-			SAM = (plane.leftCount * plane.leftBBoxArea + plane.rightCount
-				* plane.rightBBoxArea)/boundingBox
-			if (SAM < minSam) then
-				minSam = SAM
-				bestPlane = plane
-		return bestPlane;*/
-		Plane tmp;
+	Plane findBestSplitPlane(std::vector<Geometry*> objList, BoundingBox bbox){
+		
+		std::vector<Plane> candidates;
+		Plane bestPlane;
+		Plane plane;
 
-		return tmp;		
+		for (int axis = 0 ; axis < 3; axis++) {
+		    for (std::vector<Geometry*>::iterator t = objList.begin(); 
+			     t != objList.end(); ++t){
+
+			    Geometry* obj = *t; 
+			    BoundingBox obj_bbox = obj->getBoundingBox();	
+
+		        Plane p1;
+		        Plane p2;
+
+		        p1.position = obj_bbox.getMin()[axis];
+		        p1.axis = axis;
+		        p1.leftBBox = BoundingBox(bbox.getMin(), bbox.getMax());
+		        p1.leftBBox.setMax(axis, p1.position);
+		        p1.rightBBox = BoundingBox(bbox.getMin(), bbox.getMax());
+		        p1.rightBBox.setMin(axis, p1.position);
+
+		        p2.position = obj_bbox.getMax()[axis];
+		        p2.axis = axis;
+                p2.leftBBox = BoundingBox(bbox.getMin(), bbox.getMax());
+		        p2.leftBBox.setMax(axis, p2.position);
+		        p2.rightBBox = BoundingBox(bbox.getMin(), bbox.getMax());
+		        p2.rightBBox.setMin(axis, p2.position);
+
+			    candidates.push_back(p1);
+			    candidates.push_back(p2);
+		    }
+		}    
+		for (std::vector<Plane>::iterator v = candidates.begin();
+			v!= candidates.end(); ++v) {
+
+            plane = *v;
+			plane.leftCount = countLeft(objList, plane);
+			plane.leftBBoxArea = plane.leftBBox.area();
+			plane.rightCount = countRight(objList, plane);
+			plane.rightBBoxArea = plane.rightBBox.area();
+		}	
+		for (std::vector<Plane>::iterator q = candidates.begin();
+			q!= candidates.end(); ++q) {
+
+            plane = *q;
+            //Why divide by "bounding box" ?
+			double SAM = (plane.leftCount * plane.leftBBoxArea + plane.rightCount
+				* plane.rightBBoxArea);
+			double minSam = SAM;
+			if (SAM < minSam){
+				minSam = SAM;
+				bestPlane = plane;
+			}
+		}		
+		return bestPlane;	
 	}
+	int countLeft(std::vector<Geometry*> objList, Plane& plane){
+        return 0;
+    }
+    int countRight(std::vector<Geometry*> objList, Plane& plane){
+        return 0;
+    }
 
 };
