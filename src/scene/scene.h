@@ -34,7 +34,6 @@ class Scene;
 template <typename Obj>
 class KdTree;
 
-//class kdTree;
 
 class SceneElement {
 
@@ -258,7 +257,6 @@ public:
   // are exempt from this requirement.
   BoundingBox sceneBounds;
   
-  //kdTree it;
   KdTree<Geometry>* kdtree;
 
  public:
