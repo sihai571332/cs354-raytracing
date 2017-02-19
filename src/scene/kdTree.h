@@ -40,9 +40,9 @@ public:
 
     bool findIntersection(ray& r, isect& i, int t_min, int t_max){
 
-        //The check for ray is parallel sounds like r.getDirection() cross axis == 0 
 	if(r.getDirection()[axis] < 1e-6 && r.getDirection()[axis] > -1e-6 ){
             //calculate as near parallel()
+            //add ray epsilon
         }
         else{
             // Not sure what ray position means here
