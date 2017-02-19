@@ -19,7 +19,8 @@ class LeafNode;
 
 
 class Node{
-
+public:
+    virtual bool findIntersection(ray& r, isect& i, int t_min, int t_max);
 
 };
 
@@ -39,27 +40,26 @@ public:
 
     bool findIntersection(ray& r, isect& i, int t_min, int t_max){
 
-		/*//The check for ray is parallel sounds like r.getDirection() cross axis == 0 
-		if(ray is nearly parallel){
-
-			//Skip this intersection??
-			calculate as near parallel()
-		}else{
-			// Idk what it means by beyond and before...
-			if(splitPlane.position is beyond ray.position){
-				if(left->findIntersection(r, i, t_min, t_max))
-					return true;
-			}
-			else if(splitPlane.position is before ray.position){
-				if(right->findIntersection(r, i, t_min, t_max))
-					return true;
-			}
-			else{
-				if (left→findIntersection(r, i, t_min, t_max)) return true;
-				if (right→findIntersection(r, i, t_min, t_max)) return true;
-			}
-			return false;
-		}*/
+        //The check for ray is parallel sounds like r.getDirection() cross axis == 0 
+	if(r.getDirection()[axis] < 1e-6 && r.getDirection()[axis] > -1e-6 ){
+            //calculate as near parallel()
+        }
+        else{
+            // Not sure what ray position means here
+            if(position > r.getPosition()[axis]){
+                if(left.findIntersection(r, i, t_min, t_max))
+                    return true;
+            }
+	    else if(position < r.getPosition()[axis]){
+                 if(right.findIntersection(r, i, t_min, t_max))
+                     return true;
+	    }
+            else{
+                 if (left.findIntersection(r, i, t_min, t_max)) return true;
+                 if (right.findIntersection(r, i, t_min, t_max)) return true;
+            }
+            return false;
+         }
          return false;	
     }
 
@@ -73,20 +73,22 @@ public:
     std::vector<Geometry*> objList;
     LeafNode(std::vector<Geometry*> _obj) : objList(_obj) {}
 
-    bool findIntersection(ray& r, isect& i, int t_min, int t_max){.
+    bool findIntersection(ray& r, isect& i, int t_min, int t_max){
+
         for(std::vector<Geometry*>::iterator t = objList.begin(); 
             t != objList.end(); ++t){
 
             Geometry* obj = *t;
-            isect c_i;
-	    if(obj->intersect(r, c_i) && c_i.t >= t_min && c_i.t <= t_max ){
-                i = c_i;
+            isect curr;
+            //Set t_min and t_max somewhere
+	    if(obj->intersect(r, curr) && curr.t >= t_min && curr.t <= t_max ){
+                i = curr;
                 return true;
             }
         }
         return false;	
     }
-	~LeafNode();
+    ~LeafNode();
 };
 
 struct Plane{
@@ -110,7 +112,7 @@ public:
     KdTree() : depth(0) {}
     ~KdTree();
 
-	//   use beginObjects() and scene->bounds() for initial call
+    //   use beginObjects() and scene->bounds() for initial call
     Node buildTree(std::vector<Geometry*> objList, 
                    BoundingBox bbox, int depthLimit, int leafSize) {
 
@@ -202,8 +204,9 @@ public:
             plane = *q;
 
             //Why divide by "bounding box" ?
+            //Surface area of node or objects in node??
             double SAM = (plane.leftCount * plane.leftBBoxArea + plane.rightCount
-                             * plane.rightBBoxArea);
+                         * plane.rightBBoxArea); 
             double minSam = SAM;
             if (SAM < minSam){
                 minSam = SAM;
@@ -212,17 +215,37 @@ public:
         }		
 	    return bestPlane;	
     }
-        //Brain is busted... I'll just psudo code this in comments.
     int countLeft(std::vector<Geometry*> objList, Plane& plane){
-		/*
-		int count = 0;
-		for(objList iterate, have same axis as plane and have bounding box limits under the plane's, count++)
-		then same for count right but have the counding limits over the planes i guess.
-		
-        return 0; */
+
+        int count = 0;
+        for (std::vector<Geometry*>::iterator t = objList.begin(); 
+             t != objList.end(); ++t){
+
+            Geometry* obj = *t;
+            BoundingBox obj_bbox = obj->getBoundingBox();
+            double min = obj_bbox.getMin()[plane.axis];
+
+            if(min <  plane.position) count++;
+
+
+        }	
+        return count;
     }
     int countRight(std::vector<Geometry*> objList, Plane& plane){
-        return 0;
+
+        int count = 0;
+        for (std::vector<Geometry*>::iterator t = objList.begin(); 
+             t != objList.end(); ++t){
+
+            Geometry* obj = *t;
+            BoundingBox obj_bbox = obj->getBoundingBox();
+            double max = obj_bbox.getMax()[plane.axis];
+
+            if(max >  plane.position) count++;
+
+
+        }	
+        return count;
     }
 
 
