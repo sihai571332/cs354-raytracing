@@ -22,7 +22,7 @@ class Node{
 public:
     bool findIntersection(ray& r, isect& i, int t_min, int t_max);
     //Node();
-    //~Node() {};
+    //virtual ~Node();
 };
 
 class SplitNode : public Node
@@ -131,6 +131,8 @@ public:
 		
         Plane bestPlane = findBestSplitPlane(objList, bbox);
 
+        //printf("Axis: %d\n", bestPlane.axis );
+
         for (std::vector<Geometry*>::iterator t = objList.begin(); 
 	        t != objList.end(); ++t){
 
@@ -176,13 +178,14 @@ public:
                 BoundingBox obj_bbox = obj->getBoundingBox();	
                 Plane p1;
                 Plane p2;
-
+             
                 p1.position = obj_bbox.getMin()[axis];
                 p1.axis = axis;
                 p1.leftBBox = BoundingBox(bbox.getMin(), bbox.getMax());
-	        p1.leftBBox.setMax(axis, p1.position);
-	        p1.rightBBox = BoundingBox(bbox.getMin(), bbox.getMax());
-	        p1.rightBBox.setMin(axis, p1.position);
+	            p1.leftBBox.setMax(axis, p1.position);
+	            p1.rightBBox = BoundingBox(bbox.getMin(), bbox.getMax());
+	            p1.rightBBox.setMin(axis, p1.position);
+
 
                 p2.position = obj_bbox.getMax()[axis];
                 p2.axis = axis;
@@ -195,32 +198,42 @@ public:
                 candidates.push_back(p2);
             }
         }    
-        for (std::vector<Plane>::iterator v = candidates.begin();
+      /*  for (std::vector<Plane>::iterator v = candidates.begin();
              v!= candidates.end(); ++v) {
 
-             plane = *v;
+            plane = *v;
 
-             plane.leftCount = countLeft(objList, plane);
-             plane.leftBBoxArea = plane.leftBBox.area();
-             plane.rightCount = countRight(objList, plane);
-	     plane.rightBBoxArea = plane.rightBBox.area();
-	}	
-	for (std::vector<Plane>::iterator q = candidates.begin();
+            plane.leftCount = countLeft(objList, plane);
+            plane.leftBBoxArea = plane.leftBBox.area();
+            plane.rightCount = countRight(objList, plane);
+	        plane.rightBBoxArea = plane.rightBBox.area();
+	    } */
+        double minSam = 1e308;  	
+	    for (std::vector<Plane>::iterator q = candidates.begin();
              q!= candidates.end(); ++q) {
 
             plane = *q;
-
+            plane.leftCount = countLeft(objList, plane);
+            plane.leftBBoxArea = plane.leftBBox.area();
+            plane.rightCount = countRight(objList, plane);
+            plane.rightBBoxArea = plane.rightBBox.area();
             //Why divide by "bounding box" ?
             //Surface area of node or objects in node??
             double SAM = (plane.leftCount * plane.leftBBoxArea + plane.rightCount
                          * plane.rightBBoxArea); 
-            double minSam = SAM;
+
+            
             if (SAM < minSam){
                 minSam = SAM;
                 bestPlane = plane;
+                //printf("SAM: %f\n", SAM );
+                //printf("lc: %d\n", plane.leftCount );
+                //printf("la: %f\n", plane.leftBBoxArea);
+                
+
             }
         }		
-	    return bestPlane;	
+	    return bestPlane;
     }
     int countLeft(std::vector<Geometry*> objList, Plane& plane){
 
@@ -237,6 +250,7 @@ public:
 
         }	
         return count;
+
     }
     int countRight(std::vector<Geometry*> objList, Plane& plane){
 

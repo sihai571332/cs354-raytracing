@@ -136,5 +136,5 @@ void Scene::buildTree(){
     kdtree = new KdTree<Geometry>(objects, sceneBounds,
 	            traceUI->getMaxDepth(),
 	            traceUI->getLeafSize());
-
+    
 }
