@@ -223,6 +223,7 @@ bool RayTracer::loadScene( char* fn ) {
 
 	if( !sceneLoaded() ) return false;
 
+    scene->buildTree();
 	return true;
 }
 
@@ -248,6 +249,7 @@ void RayTracer::traceImage(int w, int h, int bs, double thresh)
 
 	//w = 512;
 	//h = 512;
+
 
     traceSetup(w,h); 
     // go thru each pixel in image

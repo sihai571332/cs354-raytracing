@@ -20,8 +20,9 @@ class LeafNode;
 
 class Node{
 public:
-    virtual bool findIntersection(ray& r, isect& i, int t_min, int t_max);
-
+    bool findIntersection(ray& r, isect& i, int t_min, int t_max);
+    //Node();
+    //~Node() {};
 };
 
 class SplitNode : public Node
@@ -40,7 +41,8 @@ public:
 
     bool findIntersection(ray& r, isect& i, int t_min, int t_max){
 
-	if(r.getDirection()[axis] < 1e-6 && r.getDirection()[axis] > -1e-6 ){
+        //fill in tmin and tmax here??    
+	    if(r.getDirection()[axis] < 1e-6 && r.getDirection()[axis] > -1e-6 ){
             //calculate as near parallel()
             //add ray epsilon
         }
@@ -63,7 +65,7 @@ public:
          return false;	
     }
 
-    ~SplitNode();
+    ~SplitNode() {};
 
 };
 class LeafNode : public Node
@@ -88,7 +90,7 @@ public:
         }
         return false;	
     }
-    ~LeafNode();
+    ~LeafNode() {};
 };
 
 struct Plane{
@@ -110,7 +112,12 @@ public:
     Node root;
 
     KdTree() : depth(0) {}
-    ~KdTree();
+    KdTree(std::vector<Geometry*>& objList, 
+        BoundingBox bbox, int depthLimit, int leafSize) {
+        depth = 0;
+        root = buildTree(objList, bbox, depthLimit, leafSize);
+    }
+    ~KdTree() {};
 
     //   use beginObjects() and scene->bounds() for initial call
     Node buildTree(std::vector<Geometry*> objList, 
@@ -125,11 +132,11 @@ public:
         Plane bestPlane = findBestSplitPlane(objList, bbox);
 
         for (std::vector<Geometry*>::iterator t = objList.begin(); 
-	     t != objList.end(); ++t){
+	        t != objList.end(); ++t){
 
-	    Geometry* obj = *t; 
-	    BoundingBox obj_bbox = obj->getBoundingBox();
-	    double min = obj_bbox.getMin()[bestPlane.axis];
+	        Geometry* obj = *t; 
+	        BoundingBox obj_bbox = obj->getBoundingBox();
+	        double min = obj_bbox.getMin()[bestPlane.axis];
             double max = obj_bbox.getMax()[bestPlane.axis];
             double N = length(obj->getNormal());
             //not sure what N is supposed to be

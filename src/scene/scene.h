@@ -21,6 +21,7 @@
 #include "camera.h"
 #include "bbox.h"
 
+
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
@@ -237,6 +238,7 @@ public:
 
   const BoundingBox& bounds() const { return sceneBounds; }
 
+  void buildTree();
 
  private:
   std::vector<Geometry*> objects;

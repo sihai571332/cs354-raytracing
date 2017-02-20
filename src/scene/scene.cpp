@@ -9,6 +9,8 @@
 #include <glm/gtx/io.hpp>
 
 using namespace std;
+extern TraceUI* traceUI;
+
 
 bool Geometry::intersect(ray& r, isect& i) const {
 	double tmin, tmax;
@@ -96,6 +98,7 @@ Scene::~Scene() {
 	for( g = objects.begin(); g != objects.end(); ++g ) delete (*g);
 	for( l = lights.begin(); l != lights.end(); ++l ) delete (*l);
 	for( t = textureCache.begin(); t != textureCache.end(); t++ ) delete (*t).second;
+    delete kdtree;
 }
 
 
@@ -129,4 +132,9 @@ TextureMap* Scene::getTexture(string name) {
 	} else return (*itr).second;
 }
 
+void Scene::buildTree(){
+    kdtree = new KdTree<Geometry>(objects, sceneBounds,
+	            traceUI->getMaxDepth(),
+	            traceUI->getLeafSize());
 
+}
