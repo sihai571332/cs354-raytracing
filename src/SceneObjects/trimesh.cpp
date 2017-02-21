@@ -148,13 +148,25 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     //printf("detected intersection 3\n");
 
     i.obj = this;
-    i.setMaterial(this->getMaterial());
+    
     i.t = t;
     i.N = N; //true normal
+    
+    //Set material correctly
+    if (!parent->materials.empty()){
+        Material m0 = *(parent->materials[ids[0]]);
+        Material m1 = *(parent->materials[ids[1]]);
+        Material m2 = *(parent->materials[ids[2]]);
+        i.setMaterial(m0);
+        //Create a new material out of 
+        //the vertex materials here?
+        
+    }
+    else i.setMaterial(this->getMaterial());
 
     //Interpolate normal 
 
-    if (!parent->normals.empty()){
+    if (traceUI->smShadSw() && !parent->normals.empty()){
         glm::dvec3 phong_n(0.0, 0.0, 0.0);
         glm::dvec3 n0 = parent->normals[ids[0]]; //a
         glm::dvec3 n1 = parent->normals[ids[1]]; //b

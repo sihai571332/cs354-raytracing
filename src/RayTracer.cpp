@@ -58,14 +58,19 @@ glm::dvec3 RayTracer::tracePixel(int i, int j, unsigned int ctr)
 	double y_offs = 0.25/buffer_height;
 
 	unsigned char *pixel = buffer + ( i + j * buffer_width ) * 3;
-	col = trace(x, y, pixel, ctr);
+	
 
-	//Anti-aliasing, comment out if rendering is too slow
-    /*col = trace(x+x_offs, y+y_offs, pixel, ctr) * 0.25 + 
-          trace(x-x_offs, y-y_offs, pixel, ctr) * 0.25 +
-          trace(x+x_offs, y-y_offs, pixel, ctr) * 0.25 + 
-          trace(x-x_offs, y+y_offs, pixel, ctr) * 0.25; */
-	pixel[0] = (int)( 255.0 * col[0]);
+	//Anti-aliasing
+	if(traceUI->aaSwitch()){
+	    col = trace(x+x_offs, y+y_offs, pixel, ctr) * 0.25 + 
+	          trace(x-x_offs, y-y_offs, pixel, ctr) * 0.25 +
+	          trace(x+x_offs, y-y_offs, pixel, ctr) * 0.25 + 
+	          trace(x-x_offs, y+y_offs, pixel, ctr) * 0.25; 
+
+    }
+    else col = trace(x, y, pixel, ctr);
+
+    pixel[0] = (int)( 255.0 * col[0]);
 	pixel[1] = (int)( 255.0 * col[1]);
 	pixel[2] = (int)( 255.0 * col[2]);
 	return col;
@@ -223,7 +228,9 @@ bool RayTracer::loadScene( char* fn ) {
 
 	if( !sceneLoaded() ) return false;
 
-    scene->buildTree();
+    if(traceUI->kdSwitch()){
+        scene->buildTree();
+    }
 	return true;
 }
 
