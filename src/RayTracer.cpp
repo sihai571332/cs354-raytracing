@@ -84,7 +84,6 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 	isect i;
 	glm::dvec3 colorC;
 
-
 	if(scene->intersect(r, i)) {
 		const Material& m = i.getMaterial();	
 		// YOUR CODE HERE

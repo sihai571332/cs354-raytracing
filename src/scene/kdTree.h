@@ -20,26 +20,27 @@ class LeafNode;
 
 class Node{
 public:
-    bool findIntersection(ray& r, isect& i, int t_min, int t_max);
+    virtual bool findIntersection(ray& r, isect& i, double t_min, double t_max) = 0;
     //Node();
     //virtual ~Node();
 };
+
 
 class SplitNode : public Node
 {
 public: 
     int axis;
     double position;
-    Node left;
-    Node right;
+    Node* left;
+    Node* right;
 
     SplitNode( int _axis,
                int _pos,
-               Node _l,
-               Node _r)
+               Node* _l,
+               Node* _r)
              : axis(_axis), position(_pos), left(_l), right(_r)  {}
 
-    bool findIntersection(ray& r, isect& i, int t_min, int t_max){
+    bool findIntersection(ray& r, isect& i, double t_min, double t_max){
 
         //fill in tmin and tmax here??    
         if(r.getDirection()[axis] < 1e-6 && r.getDirection()[axis] > -1e-6 ){
@@ -49,23 +50,26 @@ public:
         else{
             // Not sure what ray position means here
             if(position > r.getPosition()[axis]){
-                if(left.findIntersection(r, i, t_min, t_max))
+                if(left->findIntersection(r, i, t_min, t_max))
                     return true;
             }
         else if(position < r.getPosition()[axis]){
-                 if(right.findIntersection(r, i, t_min, t_max))
+                 if(right->findIntersection(r, i, t_min, t_max))
                      return true;
         }
             else{
-                 if (left.findIntersection(r, i, t_min, t_max)) return true;
-                 if (right.findIntersection(r, i, t_min, t_max)) return true;
+                 if (left->findIntersection(r, i, t_min, t_max)) return true;
+                 if (right->findIntersection(r, i, t_min, t_max)) return true;
             }
             return false;
          }
          return false;  
     }
 
-    ~SplitNode() {};
+    ~SplitNode() {
+        delete right;
+        delete left;
+    };
 
 };
 class LeafNode : public Node
@@ -75,7 +79,7 @@ public:
     std::vector<Geometry*> objList;
     LeafNode(std::vector<Geometry*> _obj) : objList(_obj) {}
 
-    bool findIntersection(ray& r, isect& i, int t_min, int t_max){
+    bool findIntersection(ray& r, isect& i, double t_min, double t_max){
 
         for(std::vector<Geometry*>::iterator t = objList.begin(); 
             t != objList.end(); ++t){
@@ -109,7 +113,7 @@ class KdTree
 { 
 public:
     int depth;
-    Node root;
+    Node* root;
 
     KdTree() : depth(0) {}
     KdTree(std::vector<Geometry*>& objList, 
@@ -117,14 +121,16 @@ public:
         depth = 0;
         root = buildTree(objList, bbox, depthLimit, leafSize);
     }
-    ~KdTree() {};
+    ~KdTree() {
+        delete root;
+    };
 
     //   use beginObjects() and scene->bounds() for initial call
-    Node buildTree(std::vector<Geometry*> objList, 
+    Node* buildTree(std::vector<Geometry*> objList, 
                    BoundingBox bbox, int depthLimit, int leafSize) {
 
         if (objList.size() <= leafSize || ++depth == depthLimit){ 
-            return LeafNode(objList);   
+            return new LeafNode(objList);   
         }
         std::vector<Geometry*> leftList;
         std::vector<Geometry*> rightList;
@@ -155,9 +161,9 @@ public:
         
 
         if (rightList.empty() || leftList.empty()) 
-            return LeafNode(objList);
+            return new LeafNode(objList);
         
-        else return SplitNode(bestPlane.axis, bestPlane.position,
+        else return new SplitNode(bestPlane.axis, bestPlane.position,
                 buildTree(leftList, bestPlane.leftBBox, depth, leafSize),
                 buildTree(rightList, bestPlane.rightBBox, depth, leafSize)); 
     }

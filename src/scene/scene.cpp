@@ -13,6 +13,7 @@ extern TraceUI* traceUI;
 
 
 bool Geometry::intersect(ray& r, isect& i) const {
+
 	double tmin, tmax;
 	if (hasBoundingBoxCapability() && !(bounds.intersect(r, tmin, tmax))) return false;
 	// Transform the ray into the object's local coordinate space
@@ -109,15 +110,24 @@ bool Scene::intersect(ray& r, isect& i) const {
 	double tmax = 0.0;
 	bool have_one = false;
 	typedef vector<Geometry*>::const_iterator iter;
-	for(iter j = objects.begin(); j != objects.end(); ++j) {
-		isect cur;
-		if( (*j)->intersect(r, cur) ) {
-			if(!have_one || (cur.t < i.t)) {
-				i = cur;
-				have_one = true;
+
+
+
+    if(traceUI->kdSwitch()){
+        have_one = kdtree->root->findIntersection(r, i, tmin, tmax);
+
+    }
+    else{
+		for(iter j = objects.begin(); j != objects.end(); ++j) {
+			isect cur;
+			if( (*j)->intersect(r, cur) ) {
+				if(!have_one || (cur.t < i.t)) {
+					i = cur;
+					have_one = true;
+				}
 			}
 		}
-	}
+    }
 	if(!have_one) i.setT(1000.0);
 	// if debugging,
 	if (TraceUI::m_debug) intersectCache.push_back(std::make_pair(new ray(r), new isect(i)));
