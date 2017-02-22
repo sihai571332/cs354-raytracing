@@ -3,8 +3,8 @@
 // Note: you can put kd-tree here
 
 // struct kdNode{
-// 	SplitNode;
-// 	LeafNode;
+//  SplitNode;
+//  LeafNode;
 // };
 
 /*#include <vector>
@@ -34,15 +34,15 @@ public:
     Node right;
 
     SplitNode( int _axis,
-    	       int _pos,
-    	       Node _l,
-    	       Node _r)
-    	     : axis(_axis), position(_pos), left(_l), right(_r)  {}
+               int _pos,
+               Node _l,
+               Node _r)
+             : axis(_axis), position(_pos), left(_l), right(_r)  {}
 
     bool findIntersection(ray& r, isect& i, int t_min, int t_max){
 
         //fill in tmin and tmax here??    
-	    if(r.getDirection()[axis] < 1e-6 && r.getDirection()[axis] > -1e-6 ){
+        if(r.getDirection()[axis] < 1e-6 && r.getDirection()[axis] > -1e-6 ){
             //calculate as near parallel()
             //add ray epsilon
         }
@@ -52,17 +52,17 @@ public:
                 if(left.findIntersection(r, i, t_min, t_max))
                     return true;
             }
-	    else if(position < r.getPosition()[axis]){
+        else if(position < r.getPosition()[axis]){
                  if(right.findIntersection(r, i, t_min, t_max))
                      return true;
-	    }
+        }
             else{
                  if (left.findIntersection(r, i, t_min, t_max)) return true;
                  if (right.findIntersection(r, i, t_min, t_max)) return true;
             }
             return false;
          }
-         return false;	
+         return false;  
     }
 
     ~SplitNode() {};
@@ -83,12 +83,12 @@ public:
             Geometry* obj = *t;
             isect curr;
             //Set t_min and t_max somewhere
-	    if(obj->intersect(r, curr) && curr.t >= t_min && curr.t <= t_max ){
+        if(obj->intersect(r, curr) /*&& curr.t >= t_min && curr.t <= t_max*/){
                 i = curr;
                 return true;
             }
         }
-        return false;	
+        return false;   
     }
     ~LeafNode() {};
 };
@@ -124,41 +124,39 @@ public:
                    BoundingBox bbox, int depthLimit, int leafSize) {
 
         if (objList.size() <= leafSize || ++depth == depthLimit){ 
-            return LeafNode(objList);	
+            return LeafNode(objList);   
         }
         std::vector<Geometry*> leftList;
         std::vector<Geometry*> rightList;
-		
+        
         Plane bestPlane = findBestSplitPlane(objList, bbox);
 
-        //printf("Axis: %d\n", bestPlane.axis );
-
         for (std::vector<Geometry*>::iterator t = objList.begin(); 
-	        t != objList.end(); ++t){
+            t != objList.end(); ++t){
 
-	        Geometry* obj = *t; 
-	        BoundingBox obj_bbox = obj->getBoundingBox();
-	        double min = obj_bbox.getMin()[bestPlane.axis];
+            Geometry* obj = *t; 
+            BoundingBox obj_bbox = obj->getBoundingBox();
+            double min = obj_bbox.getMin()[bestPlane.axis];
             double max = obj_bbox.getMax()[bestPlane.axis];
             double N = length(obj->getNormal());
             //not sure what N is supposed to be
         
-	    if (min < bestPlane.position)
+        if (min < bestPlane.position)
                 leftList.push_back(obj);
             if (max > bestPlane.position)
                 rightList.push_back(obj);
             if ( bestPlane.position == max &&
-        	 bestPlane.position == min && N < 0) 
+             bestPlane.position == min && N < 0) 
                 leftList.push_back(obj);
             else if (bestPlane.position == max &&
                 bestPlane.position == min && N >= 0) 
                rightList.push_back(obj); 
         }
-		
+        
 
         if (rightList.empty() || leftList.empty()) 
             return LeafNode(objList);
-		
+        
         else return SplitNode(bestPlane.axis, bestPlane.position,
                 buildTree(leftList, bestPlane.leftBBox, depth, leafSize),
                 buildTree(rightList, bestPlane.rightBBox, depth, leafSize)); 
@@ -175,16 +173,16 @@ public:
                 t != objList.end(); ++t){
 
                 Geometry* obj = *t; 
-                BoundingBox obj_bbox = obj->getBoundingBox();	
+                BoundingBox obj_bbox = obj->getBoundingBox();   
                 Plane p1;
                 Plane p2;
              
                 p1.position = obj_bbox.getMin()[axis];
                 p1.axis = axis;
                 p1.leftBBox = BoundingBox(bbox.getMin(), bbox.getMax());
-	            p1.leftBBox.setMax(axis, p1.position);
-	            p1.rightBBox = BoundingBox(bbox.getMin(), bbox.getMax());
-	            p1.rightBBox.setMin(axis, p1.position);
+                p1.leftBBox.setMax(axis, p1.position);
+                p1.rightBBox = BoundingBox(bbox.getMin(), bbox.getMax());
+                p1.rightBBox.setMin(axis, p1.position);
 
 
                 p2.position = obj_bbox.getMax()[axis];
@@ -198,18 +196,8 @@ public:
                 candidates.push_back(p2);
             }
         }    
-      /*  for (std::vector<Plane>::iterator v = candidates.begin();
-             v!= candidates.end(); ++v) {
-
-            plane = *v;
-
-            plane.leftCount = countLeft(objList, plane);
-            plane.leftBBoxArea = plane.leftBBox.area();
-            plane.rightCount = countRight(objList, plane);
-	        plane.rightBBoxArea = plane.rightBBox.area();
-	    } */
-        double minSam = 1e308;  	
-	    for (std::vector<Plane>::iterator q = candidates.begin();
+        double minSam = 1e308;      
+        for (std::vector<Plane>::iterator q = candidates.begin();
              q!= candidates.end(); ++q) {
 
             plane = *q;
@@ -226,14 +214,9 @@ public:
             if (SAM < minSam){
                 minSam = SAM;
                 bestPlane = plane;
-                //printf("SAM: %f\n", SAM );
-                //printf("lc: %d\n", plane.leftCount );
-                //printf("la: %f\n", plane.leftBBoxArea);
-                
-
             }
-        }		
-	    return bestPlane;
+        }       
+        return bestPlane;
     }
     int countLeft(std::vector<Geometry*> objList, Plane& plane){
 
@@ -248,7 +231,7 @@ public:
             if(min <  plane.position) count++;
 
 
-        }	
+        }   
         return count;
 
     }
@@ -265,7 +248,7 @@ public:
             if(max >  plane.position) count++;
 
 
-        }	
+        }   
         return count;
     }
 
