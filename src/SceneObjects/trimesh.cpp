@@ -151,31 +151,43 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     
     i.t = t;
     i.N = N; //true normal
+
+    //Set barycentric coords
+    Bary.x = u;
+    Bary.y = v; 
+    Bary.z = 1.0 - u - v;
+    i.setBary(Bary);
     
-    //Set material correctly
+    //Set material
     if (!parent->materials.empty()){
         Material m0 = *(parent->materials[ids[0]]);
         Material m1 = *(parent->materials[ids[1]]);
         Material m2 = *(parent->materials[ids[2]]);
+
+        isect m;
+
+        //Interpolates color only for now
+        glm::dvec3 amb_color = (Bary.x * m0.ka(m)) + 
+                    (Bary.y * m1.ka(m)) + 
+                    (Bary.z * m2.ka(m));
+        m0.setAmbient(amb_color);
+
+        glm::dvec3 dif_color = (Bary.x * m0.kd(m)) + 
+                    (Bary.y * m1.kd(m)) + 
+                    (Bary.z * m2.kd(m));
+        m0.setDiffuse(dif_color);
+
         i.setMaterial(m0);
-        //Create a new material out of 
-        //the vertex materials here?
         
     }
     else i.setMaterial(this->getMaterial());
 
     //Interpolate normal 
-
     if (traceUI->smShadSw() && !parent->normals.empty()){
         glm::dvec3 phong_n(0.0, 0.0, 0.0);
         glm::dvec3 n0 = parent->normals[ids[0]]; //a
         glm::dvec3 n1 = parent->normals[ids[1]]; //b
         glm::dvec3 n2 = parent->normals[ids[2]]; //c
-
-        Bary.x = u;
-        Bary.y = v; 
-        Bary.z = 1.0 - u - v;
-        i.setBary(Bary);
 
         phong_n = (Bary.x * n0) + (Bary.y * n1) + (Bary.z * n2);
         i.N = normalize(phong_n);
