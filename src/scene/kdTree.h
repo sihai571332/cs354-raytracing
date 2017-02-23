@@ -31,18 +31,23 @@ class SplitNode : public Node
 public: 
     int axis;
     double position;
+    BoundingBox nbox;
     Node* left;
     Node* right;
 
     SplitNode( int _axis,
                int _pos,
+               BoundingBox _b,
                Node* _l,
                Node* _r)
-             : axis(_axis), position(_pos), left(_l), right(_r)  {}
+             : axis(_axis), position(_pos), nbox(_b), left(_l), right(_r)  {}
 
     bool findIntersection(ray& r, isect& i, double t_min, double t_max){
 
-        //fill in tmin and tmax here??    
+        nbox.intersect(r, t_min, t_max);
+        //Use these instead of r.getPosition()????
+        glm::dvec3 pos_min = r.at(t_min);
+        glm::dvec3 pos_max = r.at(t_max);
 
         if(r.getDirection()[axis] < 1e-6 && r.getDirection()[axis] > -1e-6 ){
             //calculate as near parallel()
@@ -50,17 +55,17 @@ public:
         }
         else{
             // Not sure what ray position means here
-            if(position > r.getPosition()[axis]){
+            if(position > pos_min[axis] && position > pos_max[axis]){
                 if(left->findIntersection(r, i, t_min, t_max))
                     return true;
             }
-        else if(position < r.getPosition()[axis]){
-                 if(right->findIntersection(r, i, t_min, t_max))
+            else if(position < pos_min[axis] && position < pos_max[axis]){
+                if(right->findIntersection(r, i, t_min, t_max))
                      return true;
-        }
+            }
             else{
-                 if (left->findIntersection(r, i, t_min, t_max)) return true;
-                 if (right->findIntersection(r, i, t_min, t_max)) return true;
+                if (left->findIntersection(r, i, t_min, t_max)) return true;
+                if (right->findIntersection(r, i, t_min, t_max)) return true;
             }
             return false;
          }
@@ -87,17 +92,20 @@ public:
 
             Geometry* obj = *t;
             BoundingBox obj_bbox = obj->getBoundingBox();
+            //Not sure this is right
             obj_bbox.intersect(r, t_min, t_max);
             isect curr;
             //Set t_min and t_max somewhere
             
-            printf("The t_min is: %f The t_max is: %f the curr is: %f\n",t_min, t_max, curr.t );
-            // printf("End of LeafNode\n");
+            //printf("The t_min is: %f The t_max is: %f the curr is: %f\n",t_min, t_max, curr.t );
+            //printf("End of LeafNode\n");
         if(obj->intersect(r, curr) && curr.t >= t_min && curr.t <= t_max){
+            //printf("found isect, t: %f\n", curr.t);
                 i = curr;
                 return true;
             }
         }
+        //printf("not found\n");
         return false;   
     }
     
@@ -170,7 +178,7 @@ public:
         if (rightList.empty() || leftList.empty()) 
             return new LeafNode(objList);
         
-        else return new SplitNode(bestPlane.axis, bestPlane.position,
+        else return new SplitNode(bestPlane.axis, bestPlane.position, bbox,
                 buildTree(leftList, bestPlane.leftBBox, depth, leafSize),
                 buildTree(rightList, bestPlane.rightBBox, depth, leafSize)); 
     }
