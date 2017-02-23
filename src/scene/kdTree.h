@@ -43,6 +43,7 @@ public:
     bool findIntersection(ray& r, isect& i, double t_min, double t_max){
 
         //fill in tmin and tmax here??    
+
         if(r.getDirection()[axis] < 1e-6 && r.getDirection()[axis] > -1e-6 ){
             //calculate as near parallel()
             //add ray epsilon
@@ -85,15 +86,21 @@ public:
             t != objList.end(); ++t){
 
             Geometry* obj = *t;
+            BoundingBox obj_bbox = obj->getBoundingBox();
+            obj_bbox.intersect(r, t_min, t_max);
             isect curr;
             //Set t_min and t_max somewhere
-        if(obj->intersect(r, curr) /*&& curr.t >= t_min && curr.t <= t_max*/){
+            
+            printf("The t_min is: %f The t_max is: %f the curr is: %f\n",t_min, t_max, curr.t );
+            // printf("End of LeafNode\n");
+        if(obj->intersect(r, curr) && curr.t >= t_min && curr.t <= t_max){
                 i = curr;
                 return true;
             }
         }
         return false;   
     }
+    
     ~LeafNode() {};
 };
 
@@ -214,7 +221,7 @@ public:
             //Why divide by "bounding box" ?
             //Surface area of node or objects in node??
             double SAM = (plane.leftCount * plane.leftBBoxArea + plane.rightCount
-                         * plane.rightBBoxArea); 
+                         * plane.rightBBoxArea)/bbox.area(); 
 
             
             if (SAM < minSam){
