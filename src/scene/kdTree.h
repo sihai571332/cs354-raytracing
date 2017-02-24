@@ -52,6 +52,19 @@ public:
         if(r.getDirection()[axis] < 1e-6 && r.getDirection()[axis] > -1e-6 ){
             //calculate as near parallel()
             //add ray epsilon
+            if(position > (pos_min[axis] + RAY_EPSILON) && position > (pos_max[axis] + RAY_EPSILON)){
+                if(left->findIntersection(r, i, t_min, t_max))
+                    return true;
+            }
+            else if(position < (pos_min[axis] + RAY_EPSILON) && position < (pos_max[axis]+ RAY_EPSILON)){
+                if(right->findIntersection(r, i, t_min, t_max))
+                     return true;
+            }
+            else{
+                if (left->findIntersection(r, i, t_min, t_max)) return true;
+                if (right->findIntersection(r, i, t_min, t_max)) return true;
+            }
+            return false;
         }
         else{
             // Not sure what ray position means here
