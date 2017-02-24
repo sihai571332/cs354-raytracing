@@ -69,7 +69,7 @@ public:
                 if (right->findIntersection(r, i, t_min, t_max)) return true;
         }
         return false;
-}    
+    }    
 
     ~SplitNode() {
         delete right;

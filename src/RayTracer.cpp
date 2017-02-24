@@ -141,7 +141,14 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 				dvec3 refractD = refract(rayDir, normal, ni/nt);
 				ray refractRay(r.at(i.t), refractD, r.pixel, r.ctr, r.atten, ray::REFRACTION);
 				dvec3 refractColor (0.0, 0.0, 0.0);
-				refractColor += traceRay(refractRay, thresh, depth-1, t);
+
+                //TIR
+				if(dot(refractD, rayDir) == 0){
+					ray tirRay(r.at(i.t), reflectDirection, r.pixel, r.ctr, r.atten, ray::REFRACTION);
+					refractColor += traceRay(tirRay, thresh, depth-1, t);
+				}	
+				else 	
+				    refractColor += traceRay(refractRay, thresh, depth-1, t);
 
 				colorC += kt * refractColor;
 			}
