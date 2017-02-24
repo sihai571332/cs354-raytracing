@@ -46,44 +46,30 @@ public:
 
         nbox.intersect(r, t_min, t_max);
         //Use these instead of r.getPosition()????
-        glm::dvec3 pos_min = r.at(t_min);
-        glm::dvec3 pos_max = r.at(t_max);
+        double pos_min = r.at(t_min)[axis];
+        double pos_max = r.at(t_max)[axis];
 
         if(r.getDirection()[axis] < 1e-6 && r.getDirection()[axis] > -1e-6 ){
             //calculate as near parallel()
             //add ray epsilon
-            if(position > (pos_min[axis] + RAY_EPSILON) && position > (pos_max[axis] + RAY_EPSILON)){
-                if(left->findIntersection(r, i, t_min, t_max))
-                    return true;
-            }
-            else if(position < (pos_min[axis] + RAY_EPSILON) && position < (pos_max[axis]+ RAY_EPSILON)){
-                if(right->findIntersection(r, i, t_min, t_max))
-                     return true;
-            }
-            else{
-                if (left->findIntersection(r, i, t_min, t_max)) return true;
-                if (right->findIntersection(r, i, t_min, t_max)) return true;
-            }
-            return false;
+            pos_min+= 1e-6;
+            pos_max+= 1e-6;
+        }    
+        // Not sure what ray position means here
+        if(position > pos_min && position > pos_max){
+            if(left->findIntersection(r, i, t_min, t_max))
+                return true;
+        }
+        else if(position < pos_min && position < pos_max){
+            if(right->findIntersection(r, i, t_min, t_max))
+                 return true;
         }
         else{
-            // Not sure what ray position means here
-            if(position > pos_min[axis] && position > pos_max[axis]){
-                if(left->findIntersection(r, i, t_min, t_max))
-                    return true;
-            }
-            else if(position < pos_min[axis] && position < pos_max[axis]){
-                if(right->findIntersection(r, i, t_min, t_max))
-                     return true;
-            }
-            else{
-                    if (left->findIntersection(r, i, t_min, t_max)) return true;
-                    if (right->findIntersection(r, i, t_min, t_max)) return true;
-            }
-            return false;
-         }
-         return false;  
-    }
+                if (left->findIntersection(r, i, t_min, t_max)) return true;
+                if (right->findIntersection(r, i, t_min, t_max)) return true;
+        }
+        return false;
+}    
 
     ~SplitNode() {
         delete right;
