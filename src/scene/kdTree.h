@@ -64,8 +64,8 @@ public:
                      return true;
             }
             else{
-                if (left->findIntersection(r, i, t_min, t_max)) return true;
-                if (right->findIntersection(r, i, t_min, t_max)) return true;
+                    if (left->findIntersection(r, i, t_min, t_max)) return true;
+                    if (right->findIntersection(r, i, t_min, t_max)) return true;
             }
             return false;
          }
@@ -86,26 +86,23 @@ public:
     LeafNode(std::vector<Geometry*> _obj) : objList(_obj) {}
 
     bool findIntersection(ray& r, isect& i, double t_min, double t_max){
+        bool found = false;
+        i.setT(1e13);
 
         for(std::vector<Geometry*>::iterator t = objList.begin(); 
             t != objList.end(); ++t){
 
             Geometry* obj = *t;
             BoundingBox obj_bbox = obj->getBoundingBox();
-            //Not sure this is right
             obj_bbox.intersect(r, t_min, t_max);
             isect curr;
-            //Set t_min and t_max somewhere
-            
-            //printf("The t_min is: %f The t_max is: %f the curr is: %f\n",t_min, t_max, curr.t );
-            //printf("End of LeafNode\n");
-        if(obj->intersect(r, curr) && curr.t >= t_min && curr.t <= t_max){
-            //printf("found isect, t: %f\n", curr.t);
+
+            if(obj->intersect(r, curr) && curr.t < i.t && curr.t >= t_min && curr.t <= t_max){
                 i = curr;
-                return true;
+                found = true;
             }
         }
-        //printf("not found\n");
+        if (found) return true;
         return false;   
     }
     
